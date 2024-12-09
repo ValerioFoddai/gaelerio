@@ -12,6 +12,7 @@ import ResetPassword from '../views/auth/ResetPassword.vue'
 import UpdatePassword from '../views/auth/UpdatePassword.vue'
 import Transactions from '../views/Transactions.vue'
 import NewTransaction from '../views/transactions/NewTransaction.vue'
+import Budget from '../views/Budget.vue'
 
 const routes = [
   {
@@ -66,6 +67,12 @@ const routes = [
     path: '/transactions/new',
     name: 'NewTransaction',
     component: NewTransaction,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/budget',
+    name: 'Budget',
+    component: Budget,
     meta: { requiresAuth: true }
   },
   {

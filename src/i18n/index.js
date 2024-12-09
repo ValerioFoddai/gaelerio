@@ -6,6 +6,7 @@ const messages = {
       assets: 'Assets',
       analytics: 'Analytics', 
       transactions: 'Transactions',
+      budget: 'Budget',
       settings: 'Settings'
     },
     auth: {
@@ -103,7 +104,8 @@ const messages = {
     nav: {
       assets: 'Patrimonio',
       analytics: 'Analisi',
-      transactions: 'Transazioni', 
+      transactions: 'Transazioni',
+      budget: 'Budget',
       settings: 'Impostazioni'
     },
     auth: {

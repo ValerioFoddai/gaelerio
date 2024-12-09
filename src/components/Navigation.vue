@@ -140,6 +140,7 @@ const navigation = computed(() => [
   { name: t('nav.assets'), path: '/assets' },
   { name: t('nav.analytics'), path: '/analytics' },
   { name: t('nav.transactions'), path: '/transactions' },
+  { name: t('nav.budget'), path: '/budget' },
   { name: t('nav.settings'), path: '/settings' }
 ])
 
