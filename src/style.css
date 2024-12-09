@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-background-default text-foreground-primary dark:bg-background-default-dark dark:text-foreground-primary-dark;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground-primary dark:text-foreground-primary-dark;
+  }
+
+  p {
+    @apply text-foreground-secondary dark:text-foreground-secondary-dark;
+  }
+
+  label {
+    @apply text-foreground-primary dark:text-foreground-primary-dark;
+  }
+
+  input {
+    @apply text-foreground-primary dark:text-foreground-primary-dark;
+  }
+}
+
+@layer components {
+  .bg-card {
+    @apply bg-background-secondary dark:bg-background-secondary-dark;
+  }
+
+  .nav-link {
+    @apply text-foreground-secondary hover:text-foreground-primary dark:text-foreground-secondary-dark dark:hover:text-foreground-primary-dark;
+  }
+
+  .nav-link-active {
+    @apply text-foreground-primary dark:text-foreground-primary-dark;
+  }
+
+  .text-tertiary {
+    @apply text-foreground-tertiary dark:text-foreground-tertiary-dark;
+  }
+
+  .btn-primary {
+    @apply flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium 
+    bg-[#1E1E1E] text-white hover:bg-[#2E2E2E]
+    dark:bg-white dark:text-[#1E1E1E] dark:hover:bg-gray-100
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 
+    disabled:opacity-50 transition-colors duration-200;
+  }
+}
