@@ -1,10 +1,5 @@
 <template>
   <div class="budget-page">
-    <BudgetHeader
-      v-model="selectedMonth"
-      @change="fetchBudgets"
-    />
-
     <div v-if="budgetStore.loading" class="text-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
       <p class="mt-4 text-foreground-secondary dark:text-foreground-secondary-dark">
@@ -16,12 +11,18 @@
       {{ budgetStore.error }}
     </div>
 
-    <BudgetTable
-      v-else
-      :categories="budgetStore.categories"
-      :budgets="budgetStore.budgets"
-      @update-budget="handleBudgetUpdate"
-    />
+    <div v-else>
+      <BudgetHeader
+        v-model="selectedMonth"
+        @change="fetchBudgets"
+      />
+
+      <BudgetTable
+        :categories="budgetStore.categories"
+        :budgets="budgetStore.budgets"
+        @update-budget="handleBudgetUpdate"
+      />
+    </div>
   </div>
 </template>
 
@@ -54,6 +55,7 @@ const handleBudgetUpdate = async ({ categoryId, amount }) => {
 }
 
 onMounted(async () => {
+  await userStore.fetchUser()
   await Promise.all([
     budgetStore.fetchCategories(),
     fetchBudgets()
