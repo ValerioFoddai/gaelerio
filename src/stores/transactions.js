@@ -21,32 +21,30 @@ export const useTransactionsStore = defineStore('transactions', {
           .from('transactions')
           .select(`
             *,
-            category:expense_main_categories(name),
-            subcategory:expense_subcategories(name)
+            expense_main_categories!inner(name),
+            expense_subcategories(name)
           `)
           .eq('user_id', user.id)
 
-        // Add date filters if provided
         if (startDate) {
           query = query.gte('date', startDate)
         }
         if (endDate) {
-          // Set end date to end of day (23:59:59.999)
           const endDateTime = new Date(endDate)
           endDateTime.setHours(23, 59, 59, 999)
           query = query.lte('date', endDateTime.toISOString())
         }
 
-        // Order by date descending
         query = query.order('date', { ascending: false })
 
         const { data, error } = await query
-
         if (error) throw error
+
         this.transactions = data || []
       } catch (err) {
         console.error('Error fetching transactions:', err)
         this.error = 'Failed to load transactions'
+        throw err
       } finally {
         this.loading = false
       }
@@ -54,32 +52,36 @@ export const useTransactionsStore = defineStore('transactions', {
 
     async createTransaction({ categoryId, subcategoryId, amount, description, date }) {
       try {
+        console.log('Creating transaction with:', { categoryId, subcategoryId, amount, description, date });
+
         this.loading = true
         this.error = null
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('No authenticated user')
 
-        const { data: transaction, error: transactionError } = await supabase
+        const { data: transaction, error } = await supabase
           .from('transactions')
           .insert([{
             user_id: user.id,
             expense_category_id: categoryId,
             expense_subcategory_id: subcategoryId,
-            amount: amount,
-            description: description,
-            date: date
+            amount,
+            description,
+            date
           }])
           .select()
-          .single()
 
-        if (transactionError) throw transactionError
+        if (error) {
+          console.error('Error returned by Supabase:', error);
+          throw error;
+        }
 
         await this.fetchTransactions()
         return transaction
       } catch (err) {
         console.error('Error creating transaction:', err)
-        this.error = 'Failed to create transaction'
+        this.error = 'Failed to create transaction: ' + (err.message || 'Unknown error')
         throw err
       } finally {
         this.loading = false
@@ -94,21 +96,21 @@ export const useTransactionsStore = defineStore('transactions', {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('No authenticated user')
 
-        const { data: transaction, error: transactionError } = await supabase
+        const { data: transaction, error } = await supabase
           .from('transactions')
           .update({
             expense_category_id: categoryId,
             expense_subcategory_id: subcategoryId,
-            amount: amount,
-            description: description,
-            date: date
+            amount,
+            description,
+            date
           })
           .eq('id', id)
           .eq('user_id', user.id)
           .select()
           .single()
 
-        if (transactionError) throw transactionError
+        if (error) throw error
 
         await this.fetchTransactions()
         return transaction
@@ -129,24 +131,15 @@ export const useTransactionsStore = defineStore('transactions', {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('No authenticated user')
 
-        const { data: transaction, error: fetchError } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('id', id)
-          .single()
-
-        if (fetchError) throw fetchError
-
-        const { error: deleteError } = await supabase
+        const { error } = await supabase
           .from('transactions')
           .delete()
           .eq('id', id)
           .eq('user_id', user.id)
 
-        if (deleteError) throw deleteError
+        if (error) throw error
 
         await this.fetchTransactions()
-        return transaction
       } catch (err) {
         console.error('Error deleting transaction:', err)
         this.error = 'Failed to delete transaction'

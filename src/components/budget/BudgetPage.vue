@@ -50,7 +50,7 @@ const fetchBudgets = async () => {
   }
 }
 
-const handleBudgetUpdate = async ({ categoryId, amount }) => {
+const handleBudgetUpdate = async ({ categoryId, subcategoryId, amount }) => {
   try {
     if (!userStore.user?.id) {
       throw new Error('User not authenticated')
@@ -59,6 +59,7 @@ const handleBudgetUpdate = async ({ categoryId, amount }) => {
     await budgetStore.updateBudget({
       userId: userStore.user.id,
       categoryId,
+      subcategoryId,
       month: selectedMonth.value,
       amount
     })
