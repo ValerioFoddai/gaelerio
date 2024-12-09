@@ -13,6 +13,7 @@ export const useBudgetStore = defineStore('budget', {
     async fetchCategories() {
       try {
         this.loading = true
+        this.error = null
         const { data: mainCategories, error: mainError } = await supabase
           .from('expense_main_categories')
           .select(`
@@ -29,7 +30,7 @@ export const useBudgetStore = defineStore('budget', {
         this.categories = mainCategories || []
       } catch (err) {
         console.error('Error fetching categories:', err)
-        this.error = 'Failed to load categories'
+        this.error = 'Failed to load categories: ' + (err.message || 'Unknown error')
       } finally {
         this.loading = false
       }
@@ -37,76 +38,75 @@ export const useBudgetStore = defineStore('budget', {
 
     async fetchBudgets(userId, month) {
       try {
+        if (!userId) throw new Error('User ID is required')
+        if (!month) throw new Error('Month is required')
+
         this.loading = true
-        const { data: transactions, error } = await supabase
-          .from('transactions')
+        this.error = null
+
+        // Validate date format
+        const startDate = new Date(month)
+        if (isNaN(startDate.getTime())) {
+          throw new Error('Invalid date format')
+        }
+
+        const { data: budgets, error } = await supabase
+          .from('budgets')
           .select(`
             id,
-            amount,
-            date,
             expense_category_id,
-            expense_subcategory_id
+            expense_subcategory_id,
+            allocated_amount,
+            month
           `)
           .eq('user_id', userId)
-          .gte('date', `${month}-01`)
-          .lt('date', this.getNextMonth(month))
+          .eq('month', startDate.toISOString().split('T')[0])
         
         if (error) throw error
 
-        // Calculate budgets from transactions
-        this.budgets = this.calculateBudgets(transactions)
+        this.budgets = budgets || []
       } catch (err) {
         console.error('Error fetching budgets:', err)
-        this.error = 'Failed to load budgets'
+        this.error = 'Failed to load budgets: ' + (err.message || 'Unknown error')
+        throw err
       } finally {
         this.loading = false
       }
     },
 
-    getNextMonth(month) {
-      const [year, monthNum] = month.split('-')
-      const nextMonth = new Date(year, parseInt(monthNum), 1)
-      return nextMonth.toISOString().slice(0, 7)
-    },
-
-    calculateBudgets(transactions) {
-      const budgets = {}
-      
-      transactions.forEach(transaction => {
-        const categoryId = transaction.expense_category_id
-        if (!budgets[categoryId]) {
-          budgets[categoryId] = {
-            category_id: categoryId,
-            total_amount: 0,
-            transaction_count: 0
-          }
-        }
-        
-        budgets[categoryId].total_amount += transaction.amount
-        budgets[categoryId].transaction_count++
-      })
-
-      return Object.values(budgets)
-    },
-
     async updateBudget({ userId, categoryId, month, amount }) {
       try {
+        if (!userId) throw new Error('User ID is required')
+        if (!categoryId) throw new Error('Category ID is required')
+        if (!month) throw new Error('Month is required')
+        if (typeof amount !== 'number') throw new Error('Amount must be a number')
+
         this.loading = true
+        this.error = null
+
+        // Validate date format
+        const budgetDate = new Date(month)
+        if (isNaN(budgetDate.getTime())) {
+          throw new Error('Invalid date format')
+        }
+
+        // Upsert the budget record
         const { error } = await supabase
-          .from('transactions')
-          .insert({
+          .from('budgets')
+          .upsert({
             user_id: userId,
             expense_category_id: categoryId,
-            amount: amount,
-            date: new Date().toISOString(),
-            description: 'Budget allocation'
+            allocated_amount: amount,
+            month: budgetDate.toISOString().split('T')[0]
+          }, {
+            onConflict: 'user_id,expense_category_id,expense_subcategory_id,month'
           })
         
         if (error) throw error
         await this.fetchBudgets(userId, month)
       } catch (err) {
         console.error('Error updating budget:', err)
-        this.error = 'Failed to update budget'
+        this.error = 'Failed to update budget: ' + (err.message || 'Unknown error')
         throw err
       } finally {
         this.loading = false

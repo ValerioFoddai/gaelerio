@@ -35,14 +35,27 @@ import BudgetTable from './BudgetTable.vue'
 
 const userStore = useUserStore()
 const budgetStore = useBudgetStore()
-const selectedMonth = ref(new Date().toISOString().slice(0, 7)) // YYYY-MM format
+
+// Initialize with current month in YYYY-MM-DD format
+const selectedMonth = ref(new Date().toISOString().slice(0, 7) + '-01')
 
 const fetchBudgets = async () => {
-  await budgetStore.fetchBudgets(userStore.user.id, selectedMonth.value)
+  try {
+    if (!userStore.user?.id) {
+      throw new Error('User not authenticated')
+    }
+    await budgetStore.fetchBudgets(userStore.user.id, selectedMonth.value)
+  } catch (error) {
+    console.error('Error fetching budgets:', error)
+  }
 }
 
 const handleBudgetUpdate = async ({ categoryId, amount }) => {
   try {
+    if (!userStore.user?.id) {
+      throw new Error('User not authenticated')
+    }
+
     await budgetStore.updateBudget({
       userId: userStore.user.id,
       categoryId,
@@ -50,16 +63,22 @@ const handleBudgetUpdate = async ({ categoryId, amount }) => {
       amount
     })
   } catch (error) {
-    // Error is already handled in the store
+    console.error('Error updating budget:', error)
   }
 }
 
 onMounted(async () => {
-  await userStore.fetchUser()
-  await Promise.all([
-    budgetStore.fetchCategories(),
-    fetchBudgets()
-  ])
+  try {
+    await userStore.fetchUser()
+    if (userStore.user) {
+      await Promise.all([
+        budgetStore.fetchCategories(),
+        fetchBudgets()
+      ])
+    }
+  } catch (error) {
+    console.error('Error initializing budget page:', error)
+  }
 })
 </script>
 
