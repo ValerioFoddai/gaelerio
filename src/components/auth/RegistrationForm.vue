@@ -231,6 +231,7 @@ function validateForm() {
 }
 
 function handleSubmit() {
+  console.log('Form Data:', form.value) // Debugging line
   if (!validateForm()) return
   
   emit('submit', {
@@ -241,4 +242,3 @@ function handleSubmit() {
   })
 }
 </script>
-```
