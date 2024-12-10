@@ -50,10 +50,8 @@ export const useTransactionsStore = defineStore('transactions', {
       }
     },
 
-    async createTransaction({ categoryId, subcategoryId, amount, description, date }) {
+    async createTransaction(transactionData) {
       try {
-        console.log('Creating transaction with:', { categoryId, subcategoryId, amount, description, date });
-
         this.loading = true
         this.error = null
 
@@ -64,31 +62,29 @@ export const useTransactionsStore = defineStore('transactions', {
           .from('transactions')
           .insert([{
             user_id: user.id,
-            expense_category_id: categoryId,
-            expense_subcategory_id: subcategoryId,
-            amount,
-            description,
-            date
+            date: transactionData.date,
+            description: transactionData.description,
+            amount: transactionData.amount,
+            expense_category_id: transactionData.categoryId,
+            expense_subcategory_id: transactionData.subcategoryId
           }])
           .select()
+          .single()
 
-        if (error) {
-          console.error('Error returned by Supabase:', error);
-          throw error;
-        }
+        if (error) throw error
 
         await this.fetchTransactions()
         return transaction
       } catch (err) {
         console.error('Error creating transaction:', err)
-        this.error = 'Failed to create transaction: ' + (err.message || 'Unknown error')
+        this.error = 'Failed to create transaction'
         throw err
       } finally {
         this.loading = false
       }
     },
 
-    async updateTransaction(id, { categoryId, subcategoryId, amount, description, date }) {
+    async updateTransaction(id, updates) {
       try {
         this.loading = true
         this.error = null
@@ -99,11 +95,11 @@ export const useTransactionsStore = defineStore('transactions', {
         const { data: transaction, error } = await supabase
           .from('transactions')
           .update({
-            expense_category_id: categoryId,
-            expense_subcategory_id: subcategoryId,
-            amount,
-            description,
-            date
+            date: updates.date,
+            description: updates.description,
+            amount: updates.amount,
+            expense_category_id: updates.categoryId,
+            expense_subcategory_id: updates.subcategoryId
           })
           .eq('id', id)
           .eq('user_id', user.id)

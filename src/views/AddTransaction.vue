@@ -1,4 +1,3 @@
-```vue
 <template>
   <div class="min-h-screen bg-background-default dark:bg-background-default-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full relative">
@@ -179,4 +178,3 @@ onMounted(async () => {
   await categoriesStore.fetchCategories()
 })
 </script>
-```
