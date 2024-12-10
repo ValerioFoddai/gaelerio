@@ -1,4 +1,3 @@
-```typescript
 import { z } from 'zod';
 
 export interface ValidationResult {
@@ -60,4 +59,3 @@ export function validateRegistrationData(data: z.infer<typeof registrationSchema
     return { isValid: false, errors: { form: 'Invalid form data' } };
   }
 }
-```

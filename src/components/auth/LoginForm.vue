@@ -1,4 +1,3 @@
-```vue
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
     <!-- Error Alert -->
@@ -146,4 +145,3 @@ function handleSubmit() {
   });
 }
 </script>
-```
