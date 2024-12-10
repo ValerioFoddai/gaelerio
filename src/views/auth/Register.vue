@@ -25,94 +25,39 @@
           :error="error"
           @submit="handleRegister"
         />
-
-        <!-- Social Media Sign-up -->
-        <div class="mt-6">
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-background-secondary dark:bg-background-secondary-dark text-foreground-secondary dark:text-foreground-secondary-dark">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div class="mt-6 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-background-default dark:bg-background-default-dark text-sm font-medium text-foreground-primary dark:text-foreground-primary-dark hover:bg-gray-50"
-              @click="signInWithGoogle"
-            >
-              <img class="h-5 w-5" src="/google.svg" alt="Google" />
-              <span class="ml-2">Google</span>
-            </button>
-
-            <button
-              type="button"
-              class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-background-default dark:bg-background-default-dark text-sm font-medium text-foreground-primary dark:text-foreground-primary-dark hover:bg-gray-50"
-              @click="signInWithGithub"
-            >
-              <img class="h-5 w-5" src="/github.svg" alt="GitHub" />
-              <span class="ml-2">GitHub</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../../stores/auth'
-import DarkModeToggle from '../../components/DarkModeToggle.vue'
-import RegistrationForm from '../../components/auth/RegistrationForm.vue'
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '@/stores/auth';
+import DarkModeToggle from '@/components/DarkModeToggle.vue';
+import RegistrationForm from '@/components/auth/RegistrationForm.vue';
+import type { SignUpData } from '@/lib/supabase/auth';
 
-const router = useRouter()
-const { t } = useI18n()
-const authStore = useAuthStore()
+const router = useRouter();
+const { t } = useI18n();
+const authStore = useAuthStore();
 
-const loading = ref(false)
-const error = ref('')
+const loading = ref(false);
+const error = ref('');
 
-async function handleRegister(formData) {
+async function handleRegister(formData: SignUpData) {
   try {
-    loading.value = true
-    error.value = ''
+    loading.value = true;
+    error.value = '';
 
-    await authStore.register(formData.email, formData.password, {
-      first_name: formData.firstName,
-      last_name: formData.lastName
-    })
-
-    router.push('/login')
-  } catch (err) {
-    console.error('Registration error:', err)
-    error.value = err.message || t('auth.error.register')
+    await authStore.register(formData);
+    router.push('/login');
+  } catch (err: any) {
+    console.error('Registration error:', err);
+    error.value = err.message || t('auth.error.register');
   } finally {
-    loading.value = false
-  }
-}
-
-async function signInWithGoogle() {
-  try {
-    await authStore.signInWithGoogle()
-    router.push('/assets')
-  } catch (err) {
-    error.value = 'Failed to sign in with Google'
-  }
-}
-
-async function signInWithGithub() {
-  try {
-    await authStore.signInWithGithub()
-    router.push('/assets')
-  } catch (err) {
-    error.value = 'Failed to sign in with GitHub'
+    loading.value = false;
   }
 }
 </script>

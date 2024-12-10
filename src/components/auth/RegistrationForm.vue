@@ -145,17 +145,18 @@
   </form>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { validateRegistrationData } from '@/utils/validation';
 
 const props = defineProps({
   loading: Boolean,
   error: String
-})
+});
 
-const emit = defineEmits(['submit'])
-const { t } = useI18n()
+const emit = defineEmits(['submit']);
+const { t } = useI18n();
 
 const form = ref({
   firstName: '',
@@ -163,14 +164,14 @@ const form = ref({
   email: '',
   password: '',
   confirmPassword: ''
-})
+});
 
 const formErrors = ref({
   firstName: '',
   email: '',
   password: '',
   confirmPassword: ''
-})
+});
 
 const isFormValid = computed(() => {
   return (
@@ -183,62 +184,45 @@ const isFormValid = computed(() => {
     form.value.password &&
     form.value.confirmPassword &&
     form.value.password === form.value.confirmPassword
-  )
-})
+  );
+});
 
-function validateField(field) {
-  formErrors.value[field] = ''
-  
-  switch (field) {
-    case 'firstName':
-      if (!form.value.firstName.trim()) {
-        formErrors.value.firstName = t('auth.error.firstNameRequired')
-      }
-      break
-      
-    case 'email':
-      if (!form.value.email) {
-        formErrors.value.email = t('auth.error.emailRequired')
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-        formErrors.value.email = t('auth.error.emailInvalid')
-      }
-      break
-      
-    case 'password':
-      if (!form.value.password) {
-        formErrors.value.password = t('auth.error.passwordRequired')
-      } else if (form.value.password.length < 6) {
-        formErrors.value.password = t('auth.error.passwordLength')
-      }
-      break
+function validateField(field: string) {
+  const { errors } = validateRegistrationData({
+    first_name: form.value.firstName,
+    last_name: form.value.lastName,
+    email: form.value.email,
+    password: form.value.password,
+    confirmPassword: form.value.confirmPassword
+  });
 
-    case 'confirmPassword':
-      if (!form.value.confirmPassword) {
-        formErrors.value.confirmPassword = t('auth.error.confirmPasswordRequired')
-      } else if (form.value.confirmPassword !== form.value.password) {
-        formErrors.value.confirmPassword = t('auth.error.passwordMatch')
-      }
-      break
-  }
+  formErrors.value[field] = errors[field] || '';
 }
 
 function validateForm() {
-  validateField('firstName')
-  validateField('email')
-  validateField('password')
-  validateField('confirmPassword')
-  return !Object.values(formErrors.value).some(error => error)
+  const { isValid, errors } = validateRegistrationData({
+    first_name: form.value.firstName,
+    last_name: form.value.lastName,
+    email: form.value.email,
+    password: form.value.password,
+    confirmPassword: form.value.confirmPassword
+  });
+
+  Object.keys(formErrors.value).forEach(key => {
+    formErrors.value[key] = errors[key] || '';
+  });
+
+  return isValid;
 }
 
 function handleSubmit() {
-  console.log('Form Data:', form.value) // Debugging line
-  if (!validateForm()) return
+  if (!validateForm()) return;
   
   emit('submit', {
-    firstName: form.value.firstName.trim(),
-    lastName: form.value.lastName.trim(),
+    first_name: form.value.firstName.trim(),
+    last_name: form.value.lastName.trim(),
     email: form.value.email.trim(),
     password: form.value.password
-  })
+  });
 }
 </script>
