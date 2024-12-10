@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:profiles": "node test-supabase-profiles.js"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.19",
