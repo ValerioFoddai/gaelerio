@@ -32,27 +32,47 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.loading = true
         this.error = null
-        
-        const metadata = {
-          first_name: options.data?.first_name || '',
-          last_name: options.data?.last_name || '',
-          phone: options.data?.phone || '',
-          newsletter: options.data?.newsletter || false
-        }
-        
-        const { data, error } = await supabase.auth.signUp({
+
+        // First, sign up the user with metadata
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            ...options,
-            data: metadata,
+            data: {
+              first_name: options.first_name || '',
+              last_name: options.last_name || ''
+            },
             emailRedirectTo: `${window.location.origin}/login`
           }
         })
 
-        if (error) throw error
-        return data
+        if (authError) throw authError
+
+        // Create profile only if user was created successfully
+        if (authData?.user?.id) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert([
+              {
+                id: authData.user.id,
+                first_name: options.first_name || '',
+                last_name: options.last_name || '',
+                email: email
+              }
+            ], {
+              onConflict: 'id',
+              ignoreDuplicates: false
+            })
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError)
+            // Don't throw here - profile can be created later if needed
+          }
+        }
+
+        return authData
       } catch (error) {
+        console.error('Registration error:', error)
         this.error = error.message
         throw error
       } finally {

@@ -20,7 +20,7 @@
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="bg-background-secondary dark:bg-background-secondary-dark py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <form class="space-y-6" @submit.prevent="handleRegister">
+        <form @submit.prevent="handleRegister" class="space-y-6">
           <!-- First Name -->
           <div>
             <label for="firstName" class="block text-sm font-medium text-foreground-primary dark:text-foreground-primary-dark">
@@ -161,7 +161,7 @@
               :disabled="loading || hasErrors"
               class="btn-primary w-full"
             >
-              {{ t('auth.register') }}
+              {{ loading ? t('common.saving') : t('auth.register') }}
             </button>
           </div>
         </form>
@@ -300,15 +300,14 @@ async function handleRegister() {
     loading.value = true
 
     await authStore.register(email.value, password.value, {
-      data: {
-        first_name: firstName.value.trim(),
-        last_name: lastName.value.trim()
-      }
+      first_name: firstName.value.trim(),
+      last_name: lastName.value.trim()
     })
 
     router.push('/login')
   } catch (err) {
-    error.value = err.message
+    console.error('Registration error:', err)
+    error.value = err.message || t('auth.error.register')
   } finally {
     loading.value = false
   }
